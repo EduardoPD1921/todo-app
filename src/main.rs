@@ -13,7 +13,7 @@ fn main() {
     init_pair(REGULAR_PAIR, COLOR_WHITE, COLOR_BLACK);
     init_pair(HIGHLIGHTED_PAIR, COLOR_BLACK, COLOR_WHITE);
 
-    let mut todo_list: Vec<String> = Vec::new();
+    let mut todo_list: Vec<(String, bool)> = Vec::new();
     let mut curr_todo = 0;
 
     loop {
@@ -31,14 +31,7 @@ fn main() {
                 }
             },
             Input::Character('\n') => {
-                window.clear();
-
-                loop {
-                    let selected_todo = &todo_list[curr_todo];
-                    window.addstr(selected_todo);
-
-                    window.getch();
-                }
+                ui.toggle_todo(&mut todo_list, curr_todo);
             },
             Input::Character('i') => {
                 ui.insert_mode(&mut todo_list);
@@ -60,17 +53,25 @@ impl<'a> UI<'a> {
         Self { window }
     }
 
-    fn show_list(&self, todo_list: &Vec<String>, curr_todo: usize) {
+    fn show_list(&self, todo_list: &Vec<(String, bool)>, curr_todo: usize) {
         self.window.clear();
 
         if todo_list.len() == 0 {
             self.window.addstr("None todos founded.");
         } else {
             for (index, item) in todo_list.iter().enumerate() {
+                self.window.mvaddstr(0, 0, "Todos:");
+
+                let index_with_space_to_title = index + 1;
                 let pair_style = if index == curr_todo { HIGHLIGHTED_PAIR as u32 } else { REGULAR_PAIR as u32 };
+                let formatted_todo = if item.1 == true {
+                    format!("[x] {}", item.0)
+                } else {
+                    format!("[ ] {}", item.0)
+                };
 
                 self.window.attron(COLOR_PAIR(pair_style));
-                self.window.mvaddstr(index as i32, 0, item);
+                self.window.mvaddstr(index_with_space_to_title as i32, 0, formatted_todo);
                 self.window.attroff(COLOR_PAIR(pair_style));
             }
         }
@@ -79,7 +80,7 @@ impl<'a> UI<'a> {
         self.window.mv(self.window.get_max_y() - 1, self.window.get_max_x() - 1);
     }
 
-    fn insert_mode(&self, todo_list: &mut Vec<String>) {
+    fn insert_mode(&self, todo_list: &mut Vec<(String, bool)>) {
         let mut new_todo = vec![];
         self.window.clear();
 
@@ -91,8 +92,8 @@ impl<'a> UI<'a> {
             match new_todo_ch {
                 Input::Character('\n') => {
                     self.window.clear();
-                    let new_todo_str = format!("[ ] {}", String::from_iter(new_todo));
-                    todo_list.push(new_todo_str);
+                    let new_todo_tuple = (String::from_iter(new_todo), false);
+                    todo_list.push(new_todo_tuple);
 
                     break;
                 },
@@ -111,18 +112,27 @@ impl<'a> UI<'a> {
         }
     }
 
+    fn toggle_todo(&self, todo_list: &mut Vec<(String, bool)>, curr_todo: usize) {
+        self.window.clear();
+
+        let selected_todo = &todo_list[curr_todo];
+        let check_todo = (selected_todo.0.to_owned(), !selected_todo.1);
+
+        todo_list[curr_todo] = check_todo;
+    }
+
     fn draw_main_menu_ui(&self) {
         let max_terminal_y = self.window.get_max_y() - 1;
 
-        self.window.mvaddstr(max_terminal_y, 0, "[i]: Insert todo");
-        self.window.mvaddstr(max_terminal_y, 20, "[q]: Exit");
-        self.window.mvaddstr(max_terminal_y, 33, "[w, s]: Navigation");
+        self.window.mvaddstr(max_terminal_y, 0, "[i]: insert todo");
+        self.window.mvaddstr(max_terminal_y, 20, "[q]: exit");
+        self.window.mvaddstr(max_terminal_y, 33, "[w, s]: navigation");
     }
 
     fn draw_insert_menu_ui(&self) {
         self.window.mvaddstr(0, 0, "Digit your todo:");
-        self.window.mvaddstr(self.window.get_max_y() - 1, 0, "[Enter]: Insert todo");
-        self.window.mvaddstr(self.window.get_max_y() - 1, 23, "[F1]: Back");
+        self.window.mvaddstr(self.window.get_max_y() - 1, 0, "[Enter]: insert todo");
+        self.window.mvaddstr(self.window.get_max_y() - 1, 23, "[F1]: back");
         self.window.mv(1, 0);
     }
 }
