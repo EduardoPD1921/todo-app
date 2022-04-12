@@ -33,6 +33,9 @@ fn main() {
             Input::Character('\n') => {
                 ui.toggle_todo(&mut todo_list, curr_todo);
             },
+            Input::KeyF2 => {
+                ui.delete_todo(&mut todo_list, &mut curr_todo);
+            }
             Input::Character('i') => {
                 ui.insert_mode(&mut todo_list);
             },
@@ -121,12 +124,21 @@ impl<'a> UI<'a> {
         todo_list[curr_todo] = check_todo;
     }
 
+    fn delete_todo(&self, todo_list: &mut Vec<(String, bool)>, curr_todo: &mut usize) {
+        todo_list.remove(*curr_todo);
+
+        if *curr_todo != 0 {
+            *curr_todo -= 1;
+        }
+    }
+
     fn draw_main_menu_ui(&self) {
         let max_terminal_y = self.window.get_max_y() - 1;
 
         self.window.mvaddstr(max_terminal_y, 0, "[i]: insert todo");
-        self.window.mvaddstr(max_terminal_y, 20, "[q]: exit");
-        self.window.mvaddstr(max_terminal_y, 33, "[w, s]: navigation");
+        self.window.mvaddstr(max_terminal_y, 19, "[F2]: delete todo");
+        self.window.mvaddstr(max_terminal_y, 39, "[q]: exit");
+        self.window.mvaddstr(max_terminal_y, 50, "[w s]: navigation");
     }
 
     fn draw_insert_menu_ui(&self) {
