@@ -4,7 +4,6 @@ const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
 
 fn main() {
-    // !TODO! Usar enums para tratar ações previstas do usuário
     let window = initscr();
     let ui = UI::new(&window);
     window.keypad(true);
