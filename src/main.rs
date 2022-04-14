@@ -4,6 +4,7 @@ const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
 
 fn main() {
+    // !TODO! Usar enums para tratar ações previstas do usuário
     let window = initscr();
     let ui = UI::new(&window);
     window.keypad(true);
@@ -38,6 +39,9 @@ fn main() {
             }
             Input::Character('i') => {
                 ui.insert_mode(&mut todo_list);
+            },
+            Input::Character('e') => {
+                ui.edit_mode(&mut todo_list, curr_todo);
             },
             Input::Character('q') => break,
             _ => {}
@@ -115,6 +119,44 @@ impl<'a> UI<'a> {
         }
     }
 
+    fn edit_mode(&self, todo_list: &mut Vec<(String, bool)>, curr_todo: usize) {
+        if todo_list.len() > 0 {
+            self.window.clear();
+            self.draw_edit_menu_ui();
+    
+            let selected_todo = &todo_list[curr_todo];
+            let mut sel_todo_as_vec: Vec<char> = selected_todo.0.chars().collect();
+            let is_checked = selected_todo.1;
+    
+            self.window.mvaddstr(1, 0, &selected_todo.0);
+    
+            loop {
+                let user_action = self.window.getch().unwrap();
+    
+                match user_action {
+                    Input::Character('\n') => {
+                        let edited_todo_str = String::from_iter(&sel_todo_as_vec);
+                        let edited_todo_tp = (edited_todo_str, is_checked);
+    
+                        todo_list.remove(curr_todo);
+                        todo_list.insert(curr_todo, edited_todo_tp);
+                        break;
+                    },
+                    Input::Character(c) => {
+                        sel_todo_as_vec.push(c);
+                        self.window.addch(c);
+                    },
+                    Input::KeyBackspace => {
+                        sel_todo_as_vec.pop();
+                        self.window.mv(self.window.get_cur_y(), self.window.get_cur_x() - 1);
+                        self.window.delch();
+                    },
+                    _ => {}
+                }
+            }
+        }
+    }
+
     fn toggle_todo(&self, todo_list: &mut Vec<(String, bool)>, curr_todo: usize) {
         self.window.clear();
 
@@ -137,8 +179,9 @@ impl<'a> UI<'a> {
 
         self.window.mvaddstr(max_terminal_y, 0, "[i]: insert todo");
         self.window.mvaddstr(max_terminal_y, 19, "[F2]: delete todo");
-        self.window.mvaddstr(max_terminal_y, 39, "[q]: exit");
-        self.window.mvaddstr(max_terminal_y, 50, "[w s]: navigation");
+        self.window.mvaddstr(max_terminal_y, 39, "[e]: edit todo");
+        self.window.mvaddstr(max_terminal_y, 56, "[w s]: navigation");
+        self.window.mvaddstr(max_terminal_y, 76, "[q]: exit");
     }
 
     fn draw_insert_menu_ui(&self) {
@@ -146,5 +189,11 @@ impl<'a> UI<'a> {
         self.window.mvaddstr(self.window.get_max_y() - 1, 0, "[Enter]: insert todo");
         self.window.mvaddstr(self.window.get_max_y() - 1, 23, "[F1]: back");
         self.window.mv(1, 0);
+    }
+
+    fn draw_edit_menu_ui(&self) {
+        self.window.mvaddstr(0, 0, "Edit your todo:");
+        self.window.mvaddstr(self.window.get_max_y() - 1, 0, "[Enter]: save edit");
+        self.window.mvaddstr(self.window.get_max_y() - 1, 23, "[F1]: back");
     }
 }
