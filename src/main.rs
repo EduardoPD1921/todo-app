@@ -166,10 +166,12 @@ impl<'a> UI<'a> {
     }
 
     fn delete_todo(&self, todo_list: &mut Vec<(String, bool)>, curr_todo: &mut usize) {
-        todo_list.remove(*curr_todo);
-
-        if *curr_todo != 0 {
-            *curr_todo -= 1;
+        if todo_list.len() > 0 {
+            todo_list.remove(*curr_todo);
+    
+            if *curr_todo != 0 {
+                *curr_todo -= 1;
+            }
         }
     }
 
