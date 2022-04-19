@@ -1,4 +1,8 @@
 use pancurses::*;
+use std::fs::{self, File};
+use std::io::prelude::*;
+use std::io::LineWriter;
+use std::path::Path;
 
 const REGULAR_PAIR: i16 = 0;
 const HIGHLIGHTED_PAIR: i16 = 1;
@@ -15,6 +19,8 @@ fn main() {
 
     let mut todo_list: Vec<(String, bool)> = Vec::new();
     let mut curr_todo = 0;
+
+    UI::read_saved_todo(&mut todo_list);
 
     loop {
         ui.show_list(&todo_list, curr_todo);
@@ -42,7 +48,10 @@ fn main() {
             Input::Character('e') => {
                 ui.edit_mode(&mut todo_list, curr_todo);
             },
-            Input::Character('q') => break,
+            Input::Character('q') => {
+                ui.save_and_close(todo_list);
+                break;
+            },
             _ => {}
         }
     }
@@ -171,6 +180,44 @@ impl<'a> UI<'a> {
     
             if *curr_todo != 0 {
                 *curr_todo -= 1;
+            }
+        }
+    }
+
+    fn save_and_close(self, todo_list: Vec<(String, bool)>) {
+        let file = File::create("todo.txt").unwrap();
+        let mut file = LineWriter::new(file);
+
+        for (mut todo, is_checked) in todo_list {
+            if is_checked {
+                todo.push_str(";true\n");
+            } else {
+                todo.push_str(";false\n");
+            }
+
+            file.write_all(todo.as_bytes()).unwrap();
+        }
+
+        file.flush().unwrap();
+    }
+
+    fn read_saved_todo(todo_list: &mut Vec<(String, bool)>) {
+        let is_todo_file_created = Path::new("todo.txt").exists();
+
+        if is_todo_file_created {
+            let file_buf = fs::read_to_string("todo.txt").unwrap();
+
+            for line in file_buf.lines() {
+                let mut chunk = line.split(';');
+
+                let todo = chunk.next().unwrap();
+                let is_checked = chunk.next().unwrap();
+
+                if is_checked == "true" {
+                    todo_list.push((todo.to_owned(), true));
+                } else if is_checked == "false" {
+                    todo_list.push((todo.to_owned(), false));
+                }
             }
         }
     }
