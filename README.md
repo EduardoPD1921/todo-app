@@ -1,7 +1,7 @@
 # Todo-app
-A simple todo app made with Rust and pancurses lib
 
 
+A todo app written in Rust using pancurses lib.<br><br>
 Clone this repository and run
 
 ```console
