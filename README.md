@@ -1,2 +1,2 @@
 # todo-app
-A todo app made with Rust and pancurses lib
+A todo app written in Rust using pancurses lib
