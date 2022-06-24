@@ -179,7 +179,7 @@ impl<'a> UI<'a> {
         self.window.mvaddstr(max_terminal_y, 19, "[F2]: delete todo");
         self.window.mvaddstr(max_terminal_y, 39, "[e]: edit todo");
         self.window.mvaddstr(max_terminal_y, 56, "[w s]: navigation");
-        self.window.mvaddstr(max_terminal_y, 76, "[q]: exit");
+        self.window.mvaddstr(max_terminal_y, 76, "[q]: Save and exit");
     }
 
     fn draw_insert_menu_ui(&self) {

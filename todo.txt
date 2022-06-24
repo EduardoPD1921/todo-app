@@ -1,0 +1,3 @@
+drink more water;true
+read a book;true
+learn something;false
